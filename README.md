@@ -72,7 +72,7 @@ npm install yargs chalk undici
 
 or
 
-npm install yargs@17 chalk@4 undici
+npm install yargs@17 chalk@4 undici@5.14.0
 
 ```
 
