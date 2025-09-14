@@ -12,7 +12,7 @@ It includes implementations for the following HTTP/2 vulnerabilities:
 
 &nbsp; * **Rapid Reset Attack** (`--attack rapid-reset`): Exploits CVE-2023-44487 by rapidly opening and canceling streams.
 
-&nbsp; * **MadeYouReset Attack** (`--attack madeyoureset`): Triggers a server-side stream reset by sending a deliberately oversized data frame, testing protocol error handling.
+&nbsp; * **MadeYouReset Attack** (`--attack madeyoureset`): CVE-2025-54500 Triggers a server-side stream reset by sending a deliberately oversized data frame, testing protocol error handling.
 
 
 
