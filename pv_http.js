@@ -131,6 +131,7 @@ const HTTP_STATUS_CODES = {
 
 const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const getRandomTlsProfile = () => getRandomElement(TLS_PROFILES);
+const stripAnsi = (str) => str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
 
 const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -373,74 +374,112 @@ function updateMonitor() {
     console.log(chalk.cyan('--------------------------------------------'));
     console.log(chalk.cyan.bold('          ⚡️ PV NodeJS Layer 7 ⚡️         '));
     console.log(chalk.cyan('--------------------------------------------'));
-    console.log(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
-    console.log(chalk.white.bold('Time Remaining: ') + chalk.yellow(formatTime(timeRemaining)));
     
-    if (attackMode === 'none') {
-        const mode = argv.protocol ? 'Forced' : 'Detected';
-        console.log(chalk.white.bold(`Protocols (${mode}): `) + chalk.cyan(activeProtocols.map(p => p.toUpperCase()).join(', ') || '...'));
-    }
-
-    console.log('');
-
+    // MODIFIED: Horizontal stats layout
     if (attackMode !== 'none') {
+        // Keep original vertical layout for attack mode
+        console.log(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
+        console.log(chalk.white.bold('Time Remaining: ') + chalk.yellow(formatTime(timeRemaining)));
+        console.log('');
         const attackName = attackMode === 'rapid-reset' ? 'Rapid Reset (CVE-2023-44487)' : 'MadeYouReset';
         const totalResetsAndErrors = (stats.statusCounts['RESET'] || 0) + stats.attackErrors;
         console.log(chalk.bgRed.white.bold(` HTTP/2 Attack ACTIVE: ${attackName} `));
         console.log(chalk.white.bold('Attack Streams Sent: ') + chalk.magenta(stats.attackSent));
         console.log(chalk.white.bold('Attack Responses Rcvd: ') + chalk.magenta(stats.attackReceived));
         console.log(chalk.white.bold('Attack Errors/Resets: ') + chalk.red(totalResetsAndErrors));
-        console.log('');
-        console.log(chalk.white.bold('Response Status Counts:'));
-const sortedAttackStatuses = Object.keys(stats.statusCounts).sort();
-if (sortedAttackStatuses.length === 0) {
-    console.log(chalk.gray('  (waiting for responses...)'));
-} else {
-    sortedAttackStatuses.forEach(code => {
-         const color = code === 'RESET' ? chalk.green : chalk.red;
-         const message = HTTP_STATUS_CODES[code] || 'Unknown';
-         console.log(`  ${color(code)} (${message}): ${chalk.blue(stats.statusCounts[code])}`);
-    });
-}
+
     } else {
+        // New horizontal layout for standard mode
+        const leftColumn = [];
+        const rightColumn = [];
+
+        leftColumn.push(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
+        leftColumn.push(chalk.white.bold('Time Remaining: ') + chalk.yellow(formatTime(timeRemaining)));
+        const mode = argv.protocol ? 'Forced' : 'Detected';
+        leftColumn.push(chalk.white.bold(`Protocols (${mode}): `) + chalk.cyan(activeProtocols.map(p => p.toUpperCase()).join(', ') || '...'));
+
         const rps = (stats.requestsSent / elapsedSeconds || 0).toFixed(2);
         const avgLatency = (stats.totalLatency / stats.responsesReceived || 0).toFixed(2);
-        console.log(chalk.white.bold('Total Requests Sent: ') + chalk.blue(stats.requestsSent));
-        console.log(chalk.white.bold('Total Responses Rcvd: ') + chalk.blue(stats.responsesReceived));
-        console.log(chalk.white.bold('Requests/Second: ') + chalk.magenta(rps));
-        console.log(chalk.white.bold('Avg Latency: ') + chalk.yellow(`${avgLatency} ms`));
+        rightColumn.push(chalk.white.bold('Total Requests Sent: ') + chalk.blue(stats.requestsSent));
+        rightColumn.push(chalk.white.bold('Total Responses Rcvd: ') + chalk.blue(stats.responsesReceived));
+        rightColumn.push(chalk.white.bold('Requests/Second: ') + chalk.magenta(rps));
+        rightColumn.push(chalk.white.bold('Avg Latency: ') + chalk.yellow(`${avgLatency} ms`));
+        
+        const maxLeftLength = Math.max(...leftColumn.map(line => stripAnsi(line).length));
+        const padding = 5;
+
+        const maxRows = Math.max(leftColumn.length, rightColumn.length);
+        for (let i = 0; i < maxRows; i++) {
+            const left = leftColumn[i] || '';
+            const right = rightColumn[i] || '';
+            const leftPadded = left + ' '.repeat(Math.max(0, maxLeftLength - stripAnsi(left).length));
+            console.log(`${leftPadded}${' '.repeat(padding)}${right}`);
+        }
     }
 
     console.log('');
     console.log(chalk.white.bold('Response Status Counts:'));
-    if (attackMode === 'none') {
-        if (Object.keys(stats.protocolStats).length === 0) {
-             console.log(chalk.gray('  (waiting...)'));
-        }
-        for (const protoKey of activeProtocols) {
-            const pStats = stats.protocolStats[protoKey];
-            // MODIFIED: Removed the newline character '\n' to prevent extra spacing.
-            console.log(chalk.white.bold.underline(`Protocol: ${protoKey.toUpperCase()}`));
-            const sortedStatuses = Object.keys(pStats.statuses).sort((a, b) => b - a);
-            if (sortedStatuses.length === 0) {
-                console.log(chalk.gray('  (waiting for responses...)'));
-                continue;
-            }
-            sortedStatuses.forEach(code => {
-                 const color = String(code).startsWith('2') ? chalk.green : String(code).startsWith('3') ? chalk.yellow : code === 'RESET' ? chalk.green : chalk.red;
-                 console.log(`  ${color(code)} (${HTTP_STATUS_CODES[code] || 'Unknown'}): ${chalk.blue(pStats.statuses[code])}`);
+    
+    // MODIFIED: Horizontal protocol status layout
+    if (attackMode !== 'none') {
+        const sortedAttackStatuses = Object.keys(stats.statusCounts).sort();
+        if (sortedAttackStatuses.length === 0) {
+            console.log(chalk.gray('  (waiting for responses...)'));
+        } else {
+            sortedAttackStatuses.forEach(code => {
+                const color = code === 'RESET' ? chalk.green : chalk.red;
+                const message = HTTP_STATUS_CODES[code] || 'Unknown';
+                console.log(`  ${color(code)} (${message}): ${chalk.blue(stats.statusCounts[code])}`);
             });
         }
+    } else {
+        if (Object.keys(stats.protocolStats).length === 0 || activeProtocols.length === 0) {
+             console.log(chalk.gray('  (waiting...)'));
+        } else {
+            const allStatusCodes = new Set();
+            activeProtocols.forEach(p => {
+                Object.keys(stats.protocolStats[p].statuses).forEach(code => allStatusCodes.add(code));
+            });
+
+            const sortedStatuses = Array.from(allStatusCodes).sort((a, b) => b - a);
+            
+            if (sortedStatuses.length === 0) {
+                 console.log(chalk.gray('  (waiting for responses...)'));
+            } else {
+                const COLUMN_WIDTH = 30;
+                let header = '';
+                activeProtocols.forEach(p => {
+                    const title = `Protocol: ${p.toUpperCase()}`;
+                    header += chalk.white.bold.underline(title).padEnd(COLUMN_WIDTH + (title.length - stripAnsi(title).length));
+                });
+                console.log(header);
+
+                sortedStatuses.forEach(code => {
+                    let row = '';
+                    activeProtocols.forEach(protoKey => {
+                        const pStats = stats.protocolStats[protoKey];
+                        const count = pStats.statuses[code];
+                        let cellText = '';
+                        if (count) {
+                            const color = String(code).startsWith('2') ? chalk.green : String(code).startsWith('3') ? chalk.yellow : code === 'RESET' ? chalk.green : chalk.red;
+                            cellText = `  ${color(code)} (${HTTP_STATUS_CODES[code] || 'Unknown'}): ${chalk.blue(count)}`;
+                        }
+                        const visibleLength = stripAnsi(cellText).length;
+                        row += cellText + ' '.repeat(Math.max(0, COLUMN_WIDTH - visibleLength));
+                    });
+                    console.log(row);
+                });
+            }
+        }
     }
-
+    
     console.log('');
-    // MODIFIED: Changed log title from "5 events" to "3 events".
     const logsToShow = attackMode !== 'none' ? lastAttackLogs : lastLogs;
-const logTitle = attackMode !== 'none' ? 'Attack Log' : 'Request Log';
+    const logTitle = attackMode !== 'none' ? 'Attack Log' : 'Request Log';
 
-console.log(chalk.white.bold(`${logTitle} (last 3 events):`));
-if (logsToShow.length === 0) console.log(chalk.gray('  (waiting...)'));
-else logsToShow.forEach(log => console.log(`  ${log}`));
+    console.log(chalk.white.bold(`${logTitle} (last 3 events):`));
+    if (logsToShow.length === 0) console.log(chalk.gray('  (waiting...)'));
+    else logsToShow.forEach(log => console.log(`  ${log}`));
 
     console.log(chalk.cyan('--------------------------------------------'));
 }
