@@ -448,10 +448,14 @@ function updateMonitor() {
             } else {
                 const COLUMN_WIDTH = 30;
                 let header = '';
+                // ################### FIX START ###################
                 activeProtocols.forEach(p => {
                     const title = `Protocol: ${p.toUpperCase()}`;
-                    header += chalk.white.bold.underline(title).padEnd(COLUMN_WIDTH + (title.length - stripAnsi(title).length));
+                    const styledTitle = chalk.white.bold.underline(title);
+                    const visibleLength = stripAnsi(styledTitle).length;
+                    header += styledTitle + ' '.repeat(Math.max(0, COLUMN_WIDTH - visibleLength));
                 });
+                // #################### FIX END ####################
                 console.log(header);
 
                 sortedStatuses.forEach(code => {
