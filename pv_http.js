@@ -14,7 +14,6 @@ const chalk = require('chalk');
 // #                       CONFIGURATION DATA                       #
 // ##################################################################
 
-// MODIFIED: Reverted the USER_AGENTS list back to the original full version.
 const USER_AGENTS = [
     // Desktop
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
@@ -255,7 +254,6 @@ async function runStandardWorker(workerId, client, protocolKey) {
             stats.protocolStats[protocolKey].statuses[0] = (stats.protocolStats[protocolKey].statuses[0] || 0) + 1;
             lastLogs.push(`[${protocolLabel}] ${argv.url} -> ${chalk.red('ERROR')} (${err.code || 'N/A'})`);
         } finally {
-            // MODIFIED: Changed log length from 5 to 3.
             if (lastLogs.length > 3) lastLogs.shift();
             scheduleNext();
         }
@@ -375,7 +373,6 @@ function updateMonitor() {
     console.log(chalk.cyan.bold('          ⚡️ PV NodeJS Layer 7 ⚡️         '));
     console.log(chalk.cyan('--------------------------------------------'));
     
-    // MODIFIED: Horizontal stats layout
     if (attackMode !== 'none') {
         // Keep original vertical layout for attack mode
         console.log(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
@@ -420,7 +417,6 @@ function updateMonitor() {
     console.log('');
     console.log(chalk.white.bold('Response Status Counts:'));
     
-    // MODIFIED: Horizontal protocol status layout
     if (attackMode !== 'none') {
         const sortedAttackStatuses = Object.keys(stats.statusCounts).sort();
         if (sortedAttackStatuses.length === 0) {
