@@ -560,7 +560,7 @@ function updateMonitor() {
     const logsToShow = attackMode !== 'none' ? lastAttackLogs : lastLogs;
     const logTitle = attackMode !== 'none' ? 'Attack Log' : 'Request Log';
 
-    console.log(chalk.white.bold(`${logTitle} (last 3 events):`));
+    console.log(chalk.white.bold(`${logTitle} (last 5 events):`));
     if (logsToShow.length === 0) console.log(chalk.gray('  (waiting...)'));
     else logsToShow.forEach(log => console.log(`  ${log}`));
 
